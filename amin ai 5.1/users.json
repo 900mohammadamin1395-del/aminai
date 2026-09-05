@@ -1,0 +1,10 @@
+{
+  "amin": {
+    "password_hash": "scrypt:32768:8:1$5k6MArT5b3RhRJUm$28ba77d09dde04bf92f8c35d9d9d5383b13266f2c22cceffebffa6478f023c44416309312c88044127e361f9c5779d57722122ff5a3c0fe3ff2ae4dfb6d6287b",
+    "google": false
+  },
+  "amingamer": {
+    "password_hash": "scrypt:32768:8:1$v1QdMUHO6AoR1JE4$c45ec8b99627eb78364b4347be544d5d7ee102001d161bedb3e00a1e54c0fda47ca3463cec43e76014097b4ecac1d184fa12fd79a522ae204c7e4881f309513a",
+    "google": false
+  }
+}
