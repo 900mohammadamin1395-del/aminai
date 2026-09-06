@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ورود به Amin AI</title>
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#0A0A0C">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+<style>
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+        background: #FFFFFF;
+        color: #101012;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .login-box {
+        width: 330px;
+        background: #F4F4F6;
+        border: 1px solid #DDDDE2;
+        padding: 32px;
+        border-radius: 16px;
+        box-shadow: 0 10px 35px rgba(0,0,0,0.4);
+        text-align: center;
+    }
+
+    .logo {
+        font-size: 26px;
+        font-weight: bold;
+        margin-bottom: 6px;
+    }
+
+    .subtitle {
+        font-size: 13.5px;
+        color: #6B6B76;
+        margin-bottom: 22px;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        margin: 7px 0;
+        border: 1px solid #DDDDE2;
+        background: #FFFFFF;
+        color: #101012;
+        border-radius: 10px;
+        font-size: 15px;
+        font-family: inherit;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #8B3EF5;
+    }
+
+    input::placeholder {
+        color: #8A8A93;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 12px;
+        border: none;
+        border-radius: 10px;
+        background: #8B3EF5;
+        color: #FFFFFF;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    button:hover {
+        opacity: 0.9;
+    }
+
+    #error {
+        color: #DC2626;
+        margin-top: 12px;
+        font-size: 13.5px;
+        display: none;
+    }
+
+    .switch-link {
+        margin-top: 18px;
+        font-size: 13.5px;
+        color: #6B6B76;
+    }
+
+    .switch-link a {
+        color: #8B3EF5;
+        text-decoration: none;
+    }
+
+    .switch-link a:hover {
+        text-decoration: underline;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 16px 0;
+        color: #6B6B76;
+        font-size: 12px;
+    }
+
+    .divider::before, .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #DDDDE2;
+    }
+
+    .google-btn {
+        width: 100%;
+        padding: 11px;
+        border: 1px solid #DDDDE2;
+        background: #FFFFFF;
+        color: #101012;
+        border-radius: 10px;
+        font-size: 14px;
+        cursor: pointer;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .google-btn:hover {
+        background: #F4F4F6;
+    }
+
+    .google-note {
+        font-size: 12px;
+        color: #6B6B76;
+        margin-top: 10px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+
+    <div class="logo">🤖 Amin AI</div>
+    <div class="subtitle">ورود به حساب کاربری</div>
+
+    {% if google_enabled %}
+    <a href="/login/google" class="google-btn">
+        <span>🔵</span> ورود با حساب گوگل
+    </a>
+    <div class="divider">یا</div>
+    {% elif google_error %}
+    <div class="google-note">{{ google_error }}</div>
+    {% endif %}
+
+    <input id="username" type="text" placeholder="نام کاربری">
+    <input id="password" type="password" placeholder="رمز عبور">
+
+    <button onclick="login()">ورود</button>
+
+    <div id="error"></div>
+
+    <div class="switch-link">
+        حساب نداری؟ <a href="/register">ثبت‌نام کن</a>
+    </div>
+
+</div>
+
+<script>
+
+async function login() {
+
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const errorBox = document.getElementById("error");
+
+    try {
+
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            window.location.href = "/";
+        } else {
+            errorBox.textContent = "نام کاربری یا رمز عبور اشتباه است.";
+            errorBox.style.display = "block";
+        }
+
+    } catch (error) {
+
+        errorBox.textContent = "ارتباط با سرور برقرار نشد.";
+        errorBox.style.display = "block";
+
+    }
+}
+
+document.getElementById("password").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        login();
+    }
+});
+
+document.getElementById("username").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        login();
+    }
+});
+
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/static/service-worker.js").catch(function() {});
+}
+
+</script>
+
+</body>
+</html>

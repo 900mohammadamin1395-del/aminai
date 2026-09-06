@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amin AI</title>
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#0A0A0C">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+<style>
+    :root {
+        --bg-deep: #FFFFFF;
+        --bg-panel: #F4F4F6;
+        --bg-panel-2: #E9E9ED;
+        --accent-purple: #8B3EF5;
+        --text-light: #101012;
+        --text-muted: #6B6B76;
+        --border-soft: #DDDDE2;
+    }
+
+    body.dark {
+        --bg-deep: #000000;
+        --bg-panel: #0C0C0E;
+        --bg-panel-2: #17171A;
+        --text-light: #F5F5F7;
+        --text-muted: #9A9AA3;
+        --border-soft: #232326;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+        background: var(--bg-deep);
+        color: var(--text-light);
+        transition: background 0.3s, color 0.3s;
+    }
+
+    .app {
+        height: 100vh;
+        display: flex;
+        flex-direction: row;
+    }
+
+    /* ---------- Sidebar ---------- */
+
+    .sidebar {
+        width: 264px;
+        flex-shrink: 0;
+        background: var(--bg-panel);
+        border-left: 1px solid var(--border-soft);
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+    }
+
+    .new-chat-btn {
+        border: 1px solid var(--accent-purple);
+        border-radius: 10px;
+        padding: 11px;
+        font-size: 14px;
+        font-family: inherit;
+        cursor: pointer;
+        background: transparent;
+        color: var(--accent-purple);
+        margin-bottom: 16px;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .new-chat-btn:hover {
+        background: var(--accent-purple);
+        color: var(--bg-deep);
+    }
+
+    .conv-list {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .conv-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-radius: 10px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        font-size: 13.5px;
+        color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border-right: 2px solid transparent;
+    }
+
+    .conv-item:hover {
+        background: var(--bg-panel-2);
+        color: var(--text-light);
+    }
+
+    .conv-item.active {
+        background: var(--bg-panel-2);
+        color: var(--text-light);
+        border-right: 2px solid var(--accent-purple);
+    }
+
+    .conv-title {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .conv-delete {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-size: 13px;
+        opacity: 0.5;
+        margin-right: 6px;
+        flex-shrink: 0;
+        color: var(--accent-purple);
+    }
+
+    .conv-delete:hover {
+        opacity: 1;
+    }
+
+    .empty-hint {
+        font-size: 12.5px;
+        color: var(--text-muted);
+        padding: 10px;
+        text-align: center;
+        opacity: 0.7;
+    }
+
+    /* ---------- Main column ---------- */
+
+    .main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .header {
+        padding: 16px 20px;
+        background: var(--bg-panel);
+        border-bottom: 1px solid var(--border-soft);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    .logo-wrap {
+        display: flex;
+        align-items: baseline;
+        gap: 2px;
+        font-size: 21px;
+        font-weight: bold;
+        color: var(--text-light);
+    }
+
+    .logo-typed {
+        overflow: hidden;
+        white-space: nowrap;
+        border-left: 2px solid var(--accent-purple);
+        width: 0;
+        animation: type-logo 1.1s steps(7, end) forwards 0.2s,
+                   blink-cursor 0.8s step-end infinite 1.3s;
+        padding-left: 4px;
+    }
+
+    @keyframes type-logo {
+        from { width: 0; }
+        to { width: 6.5em; }
+    }
+
+    @keyframes blink-cursor {
+        50% { border-color: transparent; }
+    }
+
+    .logo-mark {
+        color: var(--accent-purple);
+    }
+
+    .buttons button {
+        border: none;
+        background: transparent;
+        font-size: 19px;
+        cursor: pointer;
+        margin-right: 6px;
+        color: var(--text-muted);
+        border-radius: 8px;
+        padding: 6px 8px;
+    }
+
+    .buttons button:hover {
+        background: var(--bg-panel-2);
+        color: var(--text-light);
+    }
+
+    .chat {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px 22px;
+    }
+
+    .message {
+        max-width: 72%;
+        padding: 12px 16px;
+        margin: 9px 0;
+        line-height: 1.85;
+        white-space: pre-wrap;
+        font-size: 15px;
+        animation: rise-in 0.18s ease-out;
+    }
+
+    @keyframes rise-in {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-image {
+        display: block;
+        max-width: 100%;
+        width: 320px;
+        border-radius: 12px;
+        margin-top: 10px;
+        background: var(--bg-panel);
+    }
+
+    .image-error {
+        font-size: 12.5px;
+        color: var(--text-muted);
+        margin-top: 8px;
+    }
+
+    .melody-player {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+        padding: 10px 12px;
+        background: var(--bg-panel);
+        border-radius: 10px;
+    }
+
+    .melody-play-btn {
+        border: none;
+        background: var(--accent-purple);
+        color: #FFFFFF;
+        padding: 8px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 13px;
+    }
+
+    .melody-play-btn:hover {
+        opacity: 0.9;
+    }
+
+    .melody-label {
+        font-size: 12.5px;
+        color: var(--text-muted);
+    }
+
+    .user {
+        margin-right: auto;
+        background: var(--accent-purple);
+        color: #FFFFFF;
+        border-radius: 16px 16px 4px 16px;
+    }
+
+    .ai {
+        margin-left: auto;
+        background: var(--bg-panel-2);
+        color: var(--text-light);
+        border-radius: 16px 16px 16px 4px;
+        border-right: 2px solid var(--accent-purple);
+    }
+
+    .typing-indicator {
+        margin-left: auto;
+        margin-right: 0;
+        background: var(--bg-panel-2);
+        border-right: 2px solid var(--accent-purple);
+        border-radius: 16px 16px 16px 4px;
+        padding: 14px 18px;
+        width: fit-content;
+        display: flex;
+        gap: 4px;
+    }
+
+    .typing-indicator span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--text-muted);
+        animation: bounce-dot 1.1s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes bounce-dot {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+        30% { transform: translateY(-4px); opacity: 1; }
+    }
+
+    .input-area {
+        padding: 14px 18px;
+        background: var(--bg-panel);
+        border-top: 1px solid var(--border-soft);
+        display: flex;
+        gap: 10px;
+    }
+
+    #messageInput {
+        flex: 1;
+        border: 1px solid var(--border-soft);
+        background: var(--bg-deep);
+        color: var(--text-light);
+        border-radius: 12px;
+        padding: 13px 14px;
+        font-size: 15px;
+        font-family: inherit;
+        outline: none;
+    }
+
+    #messageInput:focus {
+        border-color: var(--accent-purple);
+    }
+
+    #messageInput::placeholder {
+        color: var(--text-muted);
+    }
+
+    #sendButton {
+        border: none;
+        border-radius: 12px;
+        padding: 0 22px;
+        cursor: pointer;
+        font-size: 15px;
+        font-family: inherit;
+        background: var(--accent-purple);
+        color: var(--bg-deep);
+        font-weight: bold;
+    }
+
+    #sendButton:hover {
+        opacity: 0.9;
+    }
+
+    .mic-btn {
+        border: 1px solid var(--border-soft);
+        border-radius: 12px;
+        padding: 0 16px;
+        cursor: pointer;
+        font-size: 17px;
+        background: var(--bg-deep);
+        color: var(--text-light);
+    }
+
+    .mic-btn:hover {
+        border-color: var(--accent-purple);
+    }
+
+    .mic-btn.listening {
+        background: var(--accent-purple);
+        border-color: var(--accent-purple);
+        color: white;
+        animation: mic-pulse 1s infinite;
+    }
+
+    @keyframes mic-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(139, 62, 245, 0.5); }
+        50% { box-shadow: 0 0 0 8px rgba(139, 62, 245, 0); }
+    }
+
+    .voice-unsupported {
+        font-size: 12px;
+        color: var(--text-muted);
+        padding: 0 4px;
+    }
+
+    /* ---------- Settings modal ---------- */
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 50;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+    }
+
+    .modal-box {
+        width: 440px;
+        max-width: 92vw;
+        max-height: 84vh;
+        overflow-y: auto;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-soft);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-soft);
+        position: sticky;
+        top: 0;
+        background: var(--bg-panel);
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 17px;
+    }
+
+    .modal-close {
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    .modal-body {
+        padding: 6px 20px 20px 20px;
+    }
+
+    .settings-section {
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border-soft);
+    }
+
+    .settings-section:last-child {
+        border-bottom: none;
+    }
+
+    .settings-section h3 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: normal;
+    }
+
+    .settings-section .hint-text {
+        font-size: 12.5px;
+        color: var(--text-muted);
+        line-height: 1.7;
+        margin: 0 0 10px 0;
+    }
+
+    .modal-body button {
+        width: 100%;
+        padding: 11px;
+        margin-top: 7px;
+        border: 1px solid var(--border-soft);
+        background: transparent;
+        color: var(--text-light);
+        border-radius: 9px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 13.5px;
+        text-align: right;
+    }
+
+    .modal-body button:hover {
+        background: var(--bg-panel-2);
+    }
+
+    .modal-body button.primary-btn {
+        background: var(--accent-purple);
+        border-color: var(--accent-purple);
+        color: #FFFFFF;
+        text-align: center;
+    }
+
+    .modal-body button.danger-btn {
+        border-color: #C0392B;
+        color: #C0392B;
+    }
+
+    .modal-body button.danger-btn:hover {
+        background: #C0392B;
+        color: #FFFFFF;
+    }
+
+    .modal-body button.toggle-on {
+        background: var(--accent-purple);
+        border-color: var(--accent-purple);
+        color: #FFFFFF;
+    }
+
+    .modal-body input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 6px;
+        border: 1px solid var(--border-soft);
+        background: var(--bg-deep);
+        color: var(--text-light);
+        border-radius: 9px;
+        font-size: 13.5px;
+        font-family: inherit;
+    }
+
+    .fact-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 10px;
+        background: var(--bg-panel-2);
+        border-radius: 9px;
+        margin-top: 6px;
+        font-size: 13px;
+    }
+
+    .fact-row button {
+        width: auto;
+        margin: 0;
+        padding: 4px 9px;
+        font-size: 12px;
+        border: none;
+    }
+
+    .empty-hint-small {
+        font-size: 12.5px;
+        color: var(--text-muted);
+        opacity: 0.7;
+    }
+
+    .form-msg {
+        font-size: 12.5px;
+        margin-top: 8px;
+        display: none;
+    }
+
+    .form-msg.success {
+        color: #3FA95B;
+        display: block;
+    }
+
+    .form-msg.error {
+        color: #E0667A;
+        display: block;
+    }
+
+    @media (max-width: 700px) {
+
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 20;
+            transform: translateX(100%);
+            transition: transform 0.2s ease;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .message {
+            max-width: 86%;
+        }
+
+        .logo-wrap {
+            font-size: 18px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="sidebar" id="sidebar">
+
+        <button class="new-chat-btn" onclick="createNewConversation()">
+            ➕ گفتگوی جدید
+        </button>
+
+        <div class="conv-list" id="convList"></div>
+
+    </div>
+
+    <div class="main">
+
+        <div class="header">
+
+            <div class="logo-wrap">
+                <span class="logo-mark">🤖</span>
+                <span class="logo-typed">Amin AI</span>
+            </div>
+
+            <div class="buttons">
+                <button onclick="toggleSidebar()" title="گفتگوها">☰</button>
+                <button onclick="toggleDark()">🌙</button>
+                <button onclick="openSettingsModal()">⚙️</button>
+            </div>
+
+        </div>
+
+        <div id="settingsModal" class="modal-overlay">
+            <div class="modal-box">
+
+                <div class="modal-header">
+                    <h2>تنظیمات</h2>
+                    <button class="modal-close" onclick="closeSettingsModal()">✕</button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="settings-section">
+                        <h3>ظاهر و صدا</h3>
+                        <button onclick="toggleDark()">🌙 حالت تاریک / روشن</button>
+                        <button id="voiceReplyToggle" onclick="toggleVoiceReply()">🔊 پاسخ صوتی: خاموش</button>
+                        <button onclick="testVoice()">🎤 تست صدا</button>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>حافظه‌ی شخصی</h3>
+                        <div id="memoryFactsList"></div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>گفتگوها</h3>
+                        <button onclick="deleteCurrentConversation()">🗑️ حذف این گفتگو</button>
+                        <button onclick="deleteAllConversations()">🗑️ حذف همه‌ی گفتگوها</button>
+                    </div>
+
+                    {% if not is_google_account %}
+                    <div class="settings-section">
+                        <h3>تغییر رمز عبور</h3>
+                        <input id="oldPasswordInput" type="password" placeholder="رمز فعلی">
+                        <input id="newPasswordInput" type="password" placeholder="رمز جدید (حداقل ۴ کاراکتر)">
+                        <button class="primary-btn" onclick="changePassword()">تغییر رمز</button>
+                        <div id="passwordMsg" class="form-msg"></div>
+                    </div>
+                    {% endif %}
+
+                    <div class="settings-section">
+                        <h3>حساب کاربری</h3>
+                        <button onclick="logout()">🚪 خروج از حساب</button>
+                        <button class="danger-btn" onclick="deleteAccount()">❌ حذف کامل حساب</button>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div id="chat" class="chat"></div>
+
+        <div class="input-area">
+            <input id="messageInput" type="text" placeholder="پیامت را بنویس..." autocomplete="off">
+            <button id="micButton" class="mic-btn" onclick="toggleListening()" title="گفتن با صدا">🎤</button>
+            <button id="sendButton" onclick="sendMessage()">ارسال</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const chat = document.getElementById("chat");
+const input = document.getElementById("messageInput");
+const convList = document.getElementById("convList");
+const sidebar = document.getElementById("sidebar");
+
+let currentConversationId = localStorage.getItem("amin_current_conv") || null;
+let isSending = false;
+let typingEl = null;
+
+let voiceReplyEnabled = localStorage.getItem("amin_voice_reply") === "true";
+let isListening = false;
+
+const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+
+if (SpeechRecognitionAPI) {
+
+    recognition = new SpeechRecognitionAPI();
+    recognition.lang = "fa-IR";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        input.value = transcript;
+        sendMessage();
+    };
+
+    recognition.onerror = function(event) {
+        isListening = false;
+        document.getElementById("micButton").classList.remove("listening");
+
+        if (event.error === "not-allowed") {
+            addMessage("دسترسی به میکروفون رد شد. اجازه‌ی میکروفون رو در مرورگر فعال کن.", "ai");
+        } else if (event.error === "no-speech") {
+            // silent — user just didn't say anything
+        } else {
+            addMessage("تشخیص گفتار با خطا مواجه شد.", "ai");
+        }
+    };
+
+    recognition.onend = function() {
+        isListening = false;
+        document.getElementById("micButton").classList.remove("listening");
+    };
+
+} else {
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const micButton = document.getElementById("micButton");
+        micButton.disabled = true;
+        micButton.title = "مرورگرت از تشخیص گفتار پشتیبانی نمی‌کند";
+        micButton.style.opacity = "0.4";
+    });
+
+}
+
+
+function toggleListening() {
+
+    if (!recognition) {
+        return;
+    }
+
+    if (isListening) {
+        recognition.stop();
+        return;
+    }
+
+    isListening = true;
+    document.getElementById("micButton").classList.add("listening");
+
+    try {
+        recognition.start();
+    } catch (error) {
+        isListening = false;
+        document.getElementById("micButton").classList.remove("listening");
+    }
+}
+
+
+let cachedVoices = [];
+
+if ("speechSynthesis" in window) {
+
+    function refreshVoices() {
+        cachedVoices = window.speechSynthesis.getVoices();
+    }
+
+    refreshVoices();
+
+    window.speechSynthesis.onvoiceschanged = refreshVoices;
+}
+
+
+function speak(text, onNoVoice) {
+
+    if (!("speechSynthesis" in window)) {
+
+        if (onNoVoice) {
+            onNoVoice("مرورگرت اصلاً از خوندن متن با صدا پشتیبانی نمی‌کند.");
+        }
+
+        return;
+    }
+
+    if (cachedVoices.length === 0) {
+        cachedVoices = window.speechSynthesis.getVoices();
+    }
+
+    if (cachedVoices.length === 0) {
+
+        if (onNoVoice) {
+            onNoVoice("هیچ صدایی (Voice) روی این سیستم/مرورگر نصب نیست، پس نمی‌تونم بخونم. باید یه Voice از تنظیمات ویندوز یا مرورگرت نصب کنی.");
+        }
+
+        return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    const persianVoice = cachedVoices.find(function(v) {
+        return v.lang && v.lang.toLowerCase().indexOf("fa") === 0;
+    });
+
+    let usedFallbackVoice = false;
+
+    if (persianVoice) {
+
+        utterance.voice = persianVoice;
+        utterance.lang = persianVoice.lang;
+
+    } else {
+
+        // no Persian voice installed — setting only utterance.lang to
+        // "fa-IR" with no matching voice fails SILENTLY on many systems,
+        // so explicitly fall back to whatever voice IS installed
+        const fallbackVoice = cachedVoices.find(function(v) { return v.default; }) || cachedVoices[0];
+
+        utterance.voice = fallbackVoice;
+        utterance.lang = fallbackVoice.lang;
+        usedFallbackVoice = true;
+    }
+
+    let started = false;
+
+    utterance.onstart = function() {
+        started = true;
+    };
+
+    utterance.onerror = function(event) {
+
+        // "interrupted"/"canceled" just mean a newer speak() call
+        // pre-empted this one — not a real failure, so stay silent
+        if (event.error === "interrupted" || event.error === "canceled") {
+            return;
+        }
+
+        if (onNoVoice) {
+            onNoVoice("پخش صدا با خطا مواجه شد: " + event.error);
+        }
+
+    };
+
+    // calling speak() immediately after cancel() confuses some browsers
+    // and fires a bogus "interrupted" error — a tiny delay avoids that
+    setTimeout(function() {
+
+        window.speechSynthesis.speak(utterance);
+
+        // some systems queue the utterance forever without ever starting
+        // and without ever firing an error — catch that silent failure too
+        setTimeout(function() {
+
+            if (!started && onNoVoice) {
+                onNoVoice("صدا اصلاً شروع به پخش نشد. احتمالاً صدای نصب‌شده روی این سیستم با این مرورگر مشکل دارد — نصب یک Voice دیگر یا امتحان مرورگر دیگری را پیشنهاد می‌کنم.");
+            } else if (started && usedFallbackVoice && onNoVoice) {
+                onNoVoice("صدای فارسی روی این سیستم نصب نیست، پس با صدای «" + utterance.voice.name + "» (" + utterance.voice.lang + ") خوندم.");
+            }
+
+        }, 2500);
+
+    }, 60);
+}
+
+
+function testVoice() {
+
+    speak("سلام، من امین AI هستم. این صدای من است.", function(errorMsg) {
+        alert(errorMsg);
+    });
+}
+
+
+function toggleVoiceReply() {
+
+    voiceReplyEnabled = !voiceReplyEnabled;
+
+    localStorage.setItem("amin_voice_reply", voiceReplyEnabled);
+
+    const label = voiceReplyEnabled ? "روشن" : "خاموش";
+
+    document.getElementById("voiceReplyToggle").textContent = "🔊 پاسخ صوتی: " + label;
+
+    if (!voiceReplyEnabled && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+    }
+}
+
+
+function addMessage(text, type, imageUrl, melody) {
+
+    const message = document.createElement("div");
+    message.className = "message " + type;
+
+    const textNode = document.createElement("div");
+    textNode.textContent = text;
+    message.appendChild(textNode);
+
+    if (imageUrl) {
+
+        const img = document.createElement("img");
+        img.src = imageUrl;
+        img.className = "chat-image";
+        img.alt = "تصویر تولید شده";
+        img.loading = "lazy";
+
+        img.onerror = function() {
+            const fallback = document.createElement("div");
+            fallback.className = "image-error";
+            fallback.textContent = "عکس بارگذاری نشد.";
+            message.appendChild(fallback);
+        };
+
+        message.appendChild(img);
+    }
+
+    if (melody) {
+        message.appendChild(buildMelodyPlayer(melody));
+    }
+
+    chat.appendChild(message);
+    chat.scrollTop = chat.scrollHeight;
+
+    return message;
+}
+
+
+let audioCtx = null;
+
+
+function playMelody(melody) {
+
+    if (!window.AudioContext && !window.webkitAudioContext) {
+        alert("مرورگرت از پخش صدا پشتیبانی نمی‌کند.");
+        return;
+    }
+
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+    }
+
+    const startTime = audioCtx.currentTime;
+
+    let time = startTime;
+
+    melody.notes.forEach(function(note) {
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = "sine";
+        osc.frequency.value = note.freq;
+
+        gain.gain.setValueAtTime(0.0001, time);
+        gain.gain.exponentialRampToValueAtTime(0.18, time + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, time + note.duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(time);
+        osc.stop(time + note.duration);
+
+        time += note.duration;
+
+    });
+
+    if (melody.bass) {
+
+        let bassTime = startTime;
+
+        melody.bass.forEach(function(note) {
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = "triangle";
+            osc.frequency.value = note.freq;
+
+            gain.gain.setValueAtTime(0.0001, bassTime);
+            gain.gain.exponentialRampToValueAtTime(0.1, bassTime + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.0001, bassTime + note.duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(bassTime);
+            osc.stop(bassTime + note.duration);
+
+            bassTime += note.duration;
+
+        });
+    }
+}
+
+
+function buildMelodyPlayer(melody) {
+
+    const wrap = document.createElement("div");
+    wrap.className = "melody-player";
+
+    const playBtn = document.createElement("button");
+    playBtn.className = "melody-play-btn";
+    playBtn.textContent = "▶️ پخش آهنگ";
+
+    playBtn.onclick = function() {
+        playMelody(melody);
+    };
+
+    const label = document.createElement("div");
+    label.className = "melody-label";
+    label.textContent = "حال‌وهوا: " + melody.mood + " — " + melody.notes.length + " نت";
+
+    wrap.appendChild(playBtn);
+    wrap.appendChild(label);
+
+    return wrap;
+}
+
+
+function showTyping() {
+
+    typingEl = document.createElement("div");
+    typingEl.className = "typing-indicator";
+    typingEl.innerHTML = "<span></span><span></span><span></span>";
+
+    chat.appendChild(typingEl);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+
+function hideTyping() {
+
+    if (typingEl) {
+        typingEl.remove();
+        typingEl = null;
+    }
+}
+
+
+function setActiveConversation(id) {
+
+    currentConversationId = id;
+
+    if (id) {
+        localStorage.setItem("amin_current_conv", id);
+    } else {
+        localStorage.removeItem("amin_current_conv");
+    }
+
+    const items = convList.querySelectorAll(".conv-item");
+
+    items.forEach(function(item) {
+
+        if (item.dataset.id === id) {
+            item.classList.add("active");
+        } else {
+            item.classList.remove("active");
+        }
+
+    });
+}
+
+
+async function fetchConversations() {
+
+    try {
+
+        const response = await fetch("/api/conversations");
+
+        if (!response.ok) {
+            throw new Error("bad status");
+        }
+
+        return await response.json();
+
+    } catch (error) {
+
+        return [];
+
+    }
+}
+
+
+async function renderConversationList() {
+
+    const list = await fetchConversations();
+
+    convList.innerHTML = "";
+
+    if (list.length === 0) {
+
+        const hint = document.createElement("div");
+        hint.className = "empty-hint";
+        hint.textContent = "هنوز گفتگویی نداری";
+        convList.appendChild(hint);
+
+        return;
+    }
+
+    list.forEach(function(conv) {
+
+        const item = document.createElement("div");
+        item.className = "conv-item";
+        item.dataset.id = conv.id;
+
+        if (conv.id === currentConversationId) {
+            item.classList.add("active");
+        }
+
+        const title = document.createElement("div");
+        title.className = "conv-title";
+        title.textContent = conv.title;
+
+        title.onclick = function() {
+            loadConversation(conv.id);
+        };
+
+        const del = document.createElement("button");
+        del.className = "conv-delete";
+        del.textContent = "🗑️";
+
+        del.onclick = function(event) {
+            event.stopPropagation();
+            deleteConversation(conv.id);
+        };
+
+        item.appendChild(title);
+        item.appendChild(del);
+
+        convList.appendChild(item);
+
+    });
+}
+
+
+async function loadConversation(id) {
+
+    try {
+
+        const response = await fetch("/api/conversations/" + id);
+
+        if (!response.ok) {
+            currentConversationId = null;
+            localStorage.removeItem("amin_current_conv");
+            await renderConversationList();
+            return;
+        }
+
+        const conv = await response.json();
+
+        chat.innerHTML = "";
+
+        (conv.messages || []).forEach(function(m) {
+            addMessage(m.text, m.role === "user" ? "user" : "ai", m.image_url, m.melody);
+        });
+
+        setActiveConversation(id);
+
+        closeSidebarOnMobile();
+
+    } catch (error) {
+
+        addMessage("گفتگو بارگذاری نشد.", "ai");
+
+    }
+}
+
+
+async function createNewConversation() {
+
+    try {
+
+        const response = await fetch("/api/conversations", { method: "POST" });
+        const conv = await response.json();
+
+        chat.innerHTML = "";
+
+        setActiveConversation(conv.id);
+
+        await renderConversationList();
+
+        closeSidebarOnMobile();
+
+        input.focus();
+
+    } catch (error) {
+
+        addMessage("گفتگوی جدید ساخته نشد.", "ai");
+
+    }
+}
+
+
+async function deleteConversation(id) {
+
+    if (!confirm("این گفتگو حذف بشه؟")) {
+        return;
+    }
+
+    try {
+
+        await fetch("/api/conversations/" + id, { method: "DELETE" });
+
+        if (id === currentConversationId) {
+            chat.innerHTML = "";
+            currentConversationId = null;
+            localStorage.removeItem("amin_current_conv");
+        }
+
+        await renderConversationList();
+
+    } catch (error) {
+
+        alert("حذف گفتگو ناموفق بود.");
+
+    }
+}
+
+
+function deleteCurrentConversation() {
+
+    if (!currentConversationId) {
+        chat.innerHTML = "";
+        return;
+    }
+
+    deleteConversation(currentConversationId);
+}
+
+
+async function deleteAllConversations() {
+
+    if (!confirm("همه‌ی گفتگوها حذف بشن؟ این کار غیرقابل بازگشته.")) {
+        return;
+    }
+
+    try {
+
+        await fetch("/api/conversations", { method: "DELETE" });
+
+        chat.innerHTML = "";
+        currentConversationId = null;
+        localStorage.removeItem("amin_current_conv");
+
+        await renderConversationList();
+
+    } catch (error) {
+
+        alert("حذف گفتگوها ناموفق بود.");
+
+    }
+}
+
+
+async function sendMessage() {
+
+    if (isSending) {
+        return;
+    }
+
+    const message = input.value.trim();
+
+    if (!message) {
+        return;
+    }
+
+    isSending = true;
+
+    addMessage(message, "user");
+
+    input.value = "";
+
+    showTyping();
+
+    try {
+
+        const response = await fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                message: message,
+                conversation_id: currentConversationId
+            })
+        });
+
+        const data = await response.json();
+
+        hideTyping();
+
+        addMessage(data.answer, "ai", data.image_url, data.melody);
+
+        if (voiceReplyEnabled) {
+            speak(data.answer);
+        }
+
+        if (data.conversation_id) {
+            setActiveConversation(data.conversation_id);
+            await renderConversationList();
+        }
+
+    } catch (error) {
+
+        hideTyping();
+        addMessage("ارتباط با Amin AI برقرار نشد.", "ai");
+
+    } finally {
+
+        isSending = false;
+
+    }
+}
+
+
+input.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        sendMessage();
+    }
+});
+
+
+function toggleDark() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("amin_dark", document.body.classList.contains("dark"));
+}
+
+
+async function logout() {
+
+    try {
+
+        await fetch("/logout", { method: "POST" });
+
+    } catch (error) {
+
+        // ignore — we redirect regardless
+
+    }
+
+    localStorage.removeItem("amin_current_conv");
+
+    window.location.href = "/";
+}
+
+
+function openSettingsModal() {
+
+    document.getElementById("settingsModal").classList.add("open");
+
+    loadMemoryFacts();
+}
+
+
+function closeSettingsModal() {
+
+    document.getElementById("settingsModal").classList.remove("open");
+
+    const oldPasswordInput = document.getElementById("oldPasswordInput");
+    const newPasswordInput = document.getElementById("newPasswordInput");
+    const msg = document.getElementById("passwordMsg");
+
+    if (oldPasswordInput) oldPasswordInput.value = "";
+    if (newPasswordInput) newPasswordInput.value = "";
+
+    if (msg) {
+        msg.className = "form-msg";
+        msg.textContent = "";
+    }
+}
+
+
+async function loadMemoryFacts() {
+
+    const container = document.getElementById("memoryFactsList");
+
+    container.innerHTML = "در حال بارگذاری...";
+
+    const labels = {
+        name: "اسم",
+        city: "شهر",
+        favorite_food: "غذای موردعلاقه"
+    };
+
+    try {
+
+        const response = await fetch("/api/memory");
+        const facts = await response.json();
+
+        const keys = Object.keys(facts);
+
+        if (keys.length === 0) {
+            container.innerHTML = '<div class="empty-hint-small">هنوز چیزی یادش نمونده.</div>';
+            return;
+        }
+
+        container.innerHTML = "";
+
+        keys.forEach(function(key) {
+
+            const row = document.createElement("div");
+            row.className = "fact-row";
+
+            const label = document.createElement("span");
+            label.textContent = (labels[key] || key) + ": " + facts[key];
+
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "حذف";
+            delBtn.onclick = function() {
+                deleteMemoryFact(key);
+            };
+
+            row.appendChild(label);
+            row.appendChild(delBtn);
+
+            container.appendChild(row);
+
+        });
+
+    } catch (error) {
+
+        container.innerHTML = '<div class="empty-hint-small">خطا در بارگذاری حافظه.</div>';
+
+    }
+}
+
+
+async function deleteMemoryFact(key) {
+
+    try {
+
+        await fetch("/api/memory/" + key, { method: "DELETE" });
+
+        await loadMemoryFacts();
+
+    } catch (error) {
+
+        alert("حذف این مورد ناموفق بود.");
+
+    }
+}
+
+
+async function changePassword() {
+
+    const oldPassword = document.getElementById("oldPasswordInput").value;
+    const newPassword = document.getElementById("newPasswordInput").value;
+    const msg = document.getElementById("passwordMsg");
+
+    try {
+
+        const response = await fetch("/api/change-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ old_password: oldPassword, new_password: newPassword })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            msg.className = "form-msg success";
+            msg.textContent = "رمز عبور با موفقیت تغییر کرد ✅";
+
+            document.getElementById("oldPasswordInput").value = "";
+            document.getElementById("newPasswordInput").value = "";
+
+        } else {
+
+            msg.className = "form-msg error";
+            msg.textContent = data.error || "تغییر رمز ناموفق بود.";
+
+        }
+
+    } catch (error) {
+
+        msg.className = "form-msg error";
+        msg.textContent = "ارتباط با سرور برقرار نشد.";
+
+    }
+}
+
+
+async function deleteAccount() {
+
+    if (!confirm("حساب کاربری‌ت به همراه همه‌ی گفتگوها و حافظه‌ت برای همیشه حذف بشه؟")) {
+        return;
+    }
+
+    if (!confirm("مطمئنی؟ این کار غیرقابل بازگشته.")) {
+        return;
+    }
+
+    try {
+
+        await fetch("/api/account", { method: "DELETE" });
+
+    } catch (error) {
+
+        // ignore — redirect regardless
+
+    }
+
+    localStorage.removeItem("amin_current_conv");
+
+    window.location.href = "/";
+}
+
+
+function toggleSidebar() {
+    sidebar.classList.toggle("open");
+}
+
+
+function closeSidebarOnMobile() {
+    if (window.innerWidth <= 700) {
+        sidebar.classList.remove("open");
+    }
+}
+
+
+document.addEventListener("click", function(event) {
+
+    const modal = document.getElementById("settingsModal");
+
+    if (event.target === modal) {
+        closeSettingsModal();
+    }
+
+});
+
+
+window.onload = async function() {
+
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/static/service-worker.js").catch(function() {
+            // installable app features just won't be available — not fatal
+        });
+    }
+
+    if (localStorage.getItem("amin_dark") === "true") {
+        document.body.classList.add("dark");
+    }
+
+    if (voiceReplyEnabled) {
+        document.getElementById("voiceReplyToggle").textContent = "🔊 پاسخ صوتی: روشن";
+    }
+
+    await renderConversationList();
+
+    if (currentConversationId) {
+        await loadConversation(currentConversationId);
+    }
+
+};
+
+</script>
+
+</body>
+</html>
